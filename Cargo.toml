@@ -112,23 +112,20 @@ incremental = true
 lto = "thin"
 
 [workspace.dependencies]
-# Stark Backend - using local path for development
-# TODO(pre-merge): Replace path deps with git URLs after stark-backend HIP changes are pushed:
-#   1. Push stark-backend feat/hip-addition branch to upstream or fork
-#   2. Update these to: { git = "https://github.com/openvm-org/stark-backend.git", rev = "<commit>", default-features = false }
-#   3. Run `cargo update` to regenerate Cargo.lock
-openvm-stark-backend = { path = "../stark-backend/crates/stark-backend", default-features = false }
-openvm-stark-sdk = { path = "../stark-backend/crates/stark-sdk", default-features = false }
-openvm-cuda-backend = { path = "../stark-backend/crates/cuda-backend", default-features = false }
-openvm-cuda-builder = { path = "../stark-backend/crates/cuda-builder", default-features = false }
-openvm-cuda-common = { path = "../stark-backend/crates/cuda-common", default-features = false }
+# Stark Backend - using git fork with HIP/ROCm support
+# To use local development: uncomment path versions and comment git versions below
+openvm-stark-backend = { git = "https://github.com/dghelm/stark-backend.git", branch = "feat/hip-addition", default-features = false }
+openvm-stark-sdk = { git = "https://github.com/dghelm/stark-backend.git", branch = "feat/hip-addition", default-features = false }
+openvm-cuda-backend = { git = "https://github.com/dghelm/stark-backend.git", branch = "feat/hip-addition", default-features = false }
+openvm-cuda-builder = { git = "https://github.com/dghelm/stark-backend.git", branch = "feat/hip-addition", default-features = false }
+openvm-cuda-common = { git = "https://github.com/dghelm/stark-backend.git", branch = "feat/hip-addition", default-features = false }
 
 # HIP/ROCm Backend (AMD GPUs) - requires ROCm 6.0+ installed
 # See docs/rocm-usage.md for environment variables and build instructions.
 # The `cuda` and `rocm` features are mutually exclusive.
-openvm-hip-backend = { path = "../stark-backend/crates/hip-backend", default-features = false }
-openvm-hip-builder = { path = "../stark-backend/crates/hip-builder", default-features = false }
-openvm-hip-common = { path = "../stark-backend/crates/hip-common", default-features = false }
+openvm-hip-backend = { git = "https://github.com/dghelm/stark-backend.git", branch = "feat/hip-addition", default-features = false }
+openvm-hip-builder = { git = "https://github.com/dghelm/stark-backend.git", branch = "feat/hip-addition", default-features = false }
+openvm-hip-common = { git = "https://github.com/dghelm/stark-backend.git", branch = "feat/hip-addition", default-features = false }
 
 # OpenVM
 openvm-sdk = { path = "crates/sdk", default-features = false }
