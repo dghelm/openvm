@@ -4,6 +4,13 @@
 #include "primitives/trace_access.h"
 #include "rv32-adapters/eq_mod.cuh"
 
+// HIP/CUDA error code compatibility
+#if defined(__HIPCC__)
+#define GPU_ERROR_INVALID_VALUE hipErrorInvalidValue
+#else
+#define GPU_ERROR_INVALID_VALUE GPU_ERROR_INVALID_VALUE
+#endif
+
 using namespace riscv;
 
 template <size_t READ_LIMBS> struct ModularIsEqualCoreRecord {
@@ -210,7 +217,7 @@ extern "C" int _modular_is_equal_tracegen(
             timestamp_max_bits
         );
     } else {
-        return cudaErrorInvalidValue;
+        return GPU_ERROR_INVALID_VALUE;
     }
 
     return CHECK_KERNEL();

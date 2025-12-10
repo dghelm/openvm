@@ -32,6 +32,7 @@ openvm-transpiler = { workspace = true }
 openvm-stark-backend = { workspace = true }
 openvm-stark-sdk = { workspace = true }
 openvm-cuda-backend = { workspace = true, optional = true }
+openvm-hip-backend = { workspace = true, optional = true }
 openvm-circuit = { workspace = true }
 openvm-continuations = { workspace = true }
 openvm = { workspace = true }
@@ -122,6 +123,19 @@ cuda = [
     "openvm-pairing-circuit/cuda",
     "openvm-native-circuit/cuda",
     "openvm-rv32im-circuit/cuda",
+]
+
+rocm = [
+    "dep:openvm-hip-backend",
+    "openvm-circuit/rocm",
+    "openvm-algebra-circuit/rocm",
+    "openvm-bigint-circuit/rocm",
+    "openvm-ecc-circuit/rocm",
+    "openvm-keccak256-circuit/rocm",
+    "openvm-sha256-circuit/rocm",
+    "openvm-pairing-circuit/rocm",
+    "openvm-native-circuit/rocm",
+    "openvm-rv32im-circuit/rocm",
 ]
 
 # Legacy compatibility features for backwards compatibility with v1.2/v1.3

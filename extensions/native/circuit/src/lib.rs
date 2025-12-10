@@ -28,6 +28,12 @@ cfg_if::cfg_if! {
         use openvm_cuda_backend::{engine::GpuBabyBearPoseidon2Engine, prover_backend::GpuBackend};
         use openvm_stark_sdk::config::baby_bear_poseidon2::BabyBearPoseidon2Config;
         pub(crate) mod cuda_abi;
+    } else if #[cfg(feature = "rocm")] {
+        use openvm_circuit::arch::DenseRecordArena;
+        use openvm_circuit::system::hip::{extensions::SystemHipBuilder, SystemChipInventoryHIP};
+        use openvm_hip_backend::{engine::HipBabyBearPoseidon2Engine, prover_backend::HipBackend};
+        use openvm_stark_sdk::config::baby_bear_poseidon2::BabyBearPoseidon2Config;
+        pub(crate) mod hip_abi;
     }
 }
 pub use extension::NativeBuilder;
@@ -141,6 +147,44 @@ impl VmBuilder<GpuBabyBearPoseidon2Engine> for NativeGpuBuilder {
         let inventory = &mut chip_complex.inventory;
         VmProverExtension::<GpuBabyBearPoseidon2Engine, _, _>::extend_prover(
             &NativeGpuProverExt,
+            &config.native,
+            inventory,
+        )?;
+        Ok(chip_complex)
+    }
+}
+
+#[cfg(feature = "rocm")]
+#[derive(Clone, Default)]
+pub struct NativeHipBuilder;
+
+#[cfg(feature = "rocm")]
+impl VmBuilder<HipBabyBearPoseidon2Engine> for NativeHipBuilder {
+    type VmConfig = NativeConfig;
+    type SystemChipInventory = SystemChipInventoryHIP;
+    type RecordArena = DenseRecordArena;
+
+    fn create_chip_complex(
+        &self,
+        config: &Self::VmConfig,
+        circuit: AirInventory<BabyBearPoseidon2Config>,
+    ) -> Result<
+        VmChipComplex<
+            BabyBearPoseidon2Config,
+            Self::RecordArena,
+            HipBackend,
+            Self::SystemChipInventory,
+        >,
+        ChipInventoryError,
+    > {
+        let mut chip_complex = VmBuilder::<HipBabyBearPoseidon2Engine>::create_chip_complex(
+            &SystemHipBuilder,
+            &config.system,
+            circuit,
+        )?;
+        let inventory = &mut chip_complex.inventory;
+        VmProverExtension::<HipBabyBearPoseidon2Engine, _, _>::extend_prover(
+            &NativeHipProverExt,
             &config.native,
             inventory,
         )?;

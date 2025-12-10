@@ -71,6 +71,13 @@ cfg_if::cfg_if! {
             NativeGpuProverExt as NativeProverExt,
         };
         pub type NativeBuilder = crate::NativeGpuBuilder;
+    } else if #[cfg(feature = "rocm")] {
+        mod hip;
+        pub use self::hip::*;
+        pub use self::hip::{
+            NativeHipProverExt as NativeProverExt,
+        };
+        pub type NativeBuilder = crate::NativeHipBuilder;
     } else {
         pub use self::{
             NativeCpuProverExt as NativeProverExt,

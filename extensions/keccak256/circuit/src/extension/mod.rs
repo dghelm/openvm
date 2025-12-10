@@ -42,6 +42,13 @@ cfg_if::cfg_if! {
             Keccak256GpuProverExt as Keccak256ProverExt,
             Keccak256Rv32GpuBuilder as Keccak256Rv32Builder,
         };
+    } else if #[cfg(feature = "rocm")] {
+        mod hip;
+        pub use hip::*;
+        pub use hip::{
+            Keccak256HipProverExt as Keccak256ProverExt,
+            Keccak256Rv32HipBuilder as Keccak256Rv32Builder,
+        };
     } else {
         pub use self::{
             Keccak256CpuProverExt as Keccak256ProverExt,

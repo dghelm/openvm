@@ -3,6 +3,27 @@
 #include "primitives/shared_buffer.cuh"
 #include "primitives/trace_access.h"
 
+// HIP/CUDA stream and memory API compatibility
+#if defined(__HIPCC__)
+#include <hip/hip_runtime.h>
+#define GPU_STREAM_T hipStream_t
+#define GPU_STREAM_PER_THREAD hipStreamPerThread
+#define GPU_MEMCPY_DEVICE_TO_HOST hipMemcpyDeviceToHost
+#define gpuMallocAsync hipMallocAsync
+#define gpuMemcpyAsync hipMemcpyAsync
+#define gpuStreamSynchronize hipStreamSynchronize
+#define gpuFreeAsync hipFreeAsync
+#else
+#include <cuda_runtime.h>
+#define GPU_STREAM_T cudaStream_t
+#define GPU_STREAM_PER_THREAD GPU_STREAM_PER_THREAD
+#define GPU_MEMCPY_DEVICE_TO_HOST GPU_MEMCPY_DEVICE_TO_HOST
+#define gpuMallocAsync gpuMallocAsync
+#define gpuMemcpyAsync gpuMemcpyAsync
+#define gpuStreamSynchronize gpuStreamSynchronize
+#define gpuFreeAsync gpuFreeAsync
+#endif
+
 using poseidon2::poseidon2_mix;
 
 struct alignas(32) digest_t {
@@ -465,7 +486,7 @@ extern "C" int _build_merkle_subtree(
     digest_t *buffer,
     const size_t tree_offset,
     const uint addr_space_idx,
-    cudaStream_t stream
+    GPU_STREAM_T stream
 ) {
     digest_t *tree = buffer + tree_offset;
     assert((size & (size - 1)) == 0);
@@ -500,7 +521,7 @@ extern "C" int _restore_merkle_subtree_path(
     digest_t *zero_hash,
     const size_t remaining_size,
     const size_t full_size,
-    cudaStream_t stream
+    GPU_STREAM_T stream
 ) {
     merkle_tree_restore_path<<<1, 1, 0, stream>>>(
         in_out, zero_hash + full_size - remaining_size, remaining_size
@@ -512,7 +533,7 @@ extern "C" int _finalize_merkle_tree(
     uintptr_t *in,
     digest_t *out,
     const size_t num_roots,
-    cudaStream_t stream
+    GPU_STREAM_T stream
 ) {
     assert((num_roots & (num_roots - 1)) == 0);
     merkle_tree_root<<<1, 1, 0, stream>>>(in, out, num_roots);
@@ -572,18 +593,18 @@ extern "C" int _update_merkle_tree(
 
     uint32_t *d_num_parents;
     uint32_t merkle_trace_offset = unpadded_trace_height;
-    cudaMallocAsync(&d_num_parents, sizeof(uint32_t), cudaStreamPerThread);
+    gpuMallocAsync(&d_num_parents, sizeof(uint32_t), GPU_STREAM_PER_THREAD);
     for (uint32_t h = 1; h <= subtree_height; ++h) {
         uint32_t num_parents;
         mark_parents<<<1, 1>>>(child_buf, tmp_buf, layer, num_children, h, d_num_parents);
-        cudaMemcpyAsync(
+        gpuMemcpyAsync(
             &num_parents,
             d_num_parents,
             sizeof(uint32_t),
-            cudaMemcpyDeviceToHost,
-            cudaStreamPerThread
+            GPU_MEMCPY_DEVICE_TO_HOST,
+            GPU_STREAM_PER_THREAD
         );
-        cudaStreamSynchronize(cudaStreamPerThread);
+        gpuStreamSynchronize(GPU_STREAM_PER_THREAD);
         {
             auto [grid, block] = kernel_launch_params(num_subtrees);
             adjust_subtrees_before_layer_update<<<grid, block>>>(
@@ -609,7 +630,7 @@ extern "C" int _update_merkle_tree(
         );
         num_children = num_parents;
     }
-    cudaFreeAsync(d_num_parents, cudaStreamPerThread);
+    gpuFreeAsync(d_num_parents, GPU_STREAM_PER_THREAD);
     update_to_root<<<1, 1>>>(
         child_buf,
         layer,

@@ -36,6 +36,14 @@ cfg_if::cfg_if! {
             Rv32ModularHybridBuilder as Rv32ModularBuilder,
             Rv32ModularWithFp2HybridBuilder as Rv32ModularWithFp2Builder,
         };
+    } else if #[cfg(feature = "rocm")] {
+        mod hip;
+        pub use hip::*;
+        pub use {
+            AlgebraHybridHipProverExt as AlgebraProverExt,
+            Rv32ModularHybridHipBuilder as Rv32ModularBuilder,
+            Rv32ModularWithFp2HybridHipBuilder as Rv32ModularWithFp2Builder,
+        };
     } else {
         pub use self::{
             AlgebraCpuProverExt as AlgebraProverExt,

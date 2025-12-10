@@ -21,6 +21,8 @@ openvm-stark-backend = { workspace = true }
 openvm-stark-sdk = { workspace = true, optional = true }
 openvm-cuda-common = { workspace = true, optional = true }
 openvm-cuda-backend = { workspace = true, optional = true }
+openvm-hip-common = { workspace = true, optional = true }
+openvm-hip-backend = { workspace = true, optional = true }
 
 itertools.workspace = true
 tracing.workspace = true
@@ -43,6 +45,7 @@ cfg-if.workspace = true
 
 [build-dependencies]
 openvm-cuda-builder = { workspace = true, optional = true }
+openvm-hip-builder = { workspace = true, optional = true }
 
 [target.'cfg(any(unix, windows))'.dependencies]
 memmap2.workspace = true
@@ -93,6 +96,14 @@ cuda = [
     "dep:openvm-cuda-common",
     "dep:openvm-cuda-backend",
     "dep:openvm-cuda-builder",
+]
+rocm = [
+    "dep:openvm-stark-sdk",           # for BabyBearPoseidon2Config
+    "openvm-circuit-primitives/rocm",
+    "dep:openvm-hip-common",
+    "dep:openvm-hip-backend",
+    "dep:openvm-hip-builder",
+    "dep:openvm-cuda-common",  # Shared headers (launcher.cuh, fp.h, baby_bear.hpp)
 ]
 touchemall = [
     "cuda",

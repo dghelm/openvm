@@ -1,7 +1,7 @@
 #![cfg_attr(feature = "tco", allow(incomplete_features))]
 #![cfg_attr(feature = "tco", feature(explicit_tail_calls))]
 #![cfg_attr(feature = "tco", feature(core_intrinsics))]
-#[cfg(feature = "cuda")]
+#[cfg(any(feature = "cuda", feature = "rocm"))]
 use {
     openvm_mod_circuit_builder::FieldExpressionCoreRecordMut,
     openvm_rv32_adapters::Rv32VecHeapAdapterRecord,
@@ -13,7 +13,7 @@ mod weierstrass_chip;
 pub use extension::*;
 pub use weierstrass_chip::*;
 
-#[cfg(feature = "cuda")]
+#[cfg(any(feature = "cuda", feature = "rocm"))]
 pub(crate) type EccRecord<
     'a,
     const NUM_READS: usize,

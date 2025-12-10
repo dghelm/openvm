@@ -2356,6 +2356,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2931af7e13dc045d8e9d26afccc6fa115d64e115c9c84b1166288b46f6782c2"
 
 [[package]]
+name = "cubecl-hip-sys"
+version = "6.4.4348400"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e49f4f0f2ca6942889f2f62780bee6b9629faec3a0e81f5c8dabe36f089c49f9"
+dependencies = [
+ "libc",
+ "regex",
+]
+
+[[package]]
 name = "cuda-config"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5136,6 +5146,9 @@ dependencies = [
  "openvm-cuda-backend",
  "openvm-cuda-builder",
  "openvm-cuda-common",
+ "openvm-hip-backend",
+ "openvm-hip-builder",
+ "openvm-hip-common",
  "openvm-instructions",
  "openvm-mod-circuit-builder",
  "openvm-pairing-guest",
@@ -5317,6 +5330,9 @@ dependencies = [
  "openvm-cuda-backend",
  "openvm-cuda-builder",
  "openvm-cuda-common",
+ "openvm-hip-backend",
+ "openvm-hip-builder",
+ "openvm-hip-common",
  "openvm-instructions",
  "openvm-rv32-adapters",
  "openvm-rv32im-circuit",
@@ -5385,6 +5401,9 @@ dependencies = [
  "openvm-cuda-backend",
  "openvm-cuda-builder",
  "openvm-cuda-common",
+ "openvm-hip-backend",
+ "openvm-hip-builder",
+ "openvm-hip-common",
  "openvm-instructions",
  "openvm-native-compiler",
  "openvm-poseidon2-air",
@@ -5426,6 +5445,9 @@ dependencies = [
  "openvm-cuda-backend",
  "openvm-cuda-builder",
  "openvm-cuda-common",
+ "openvm-hip-backend",
+ "openvm-hip-builder",
+ "openvm-hip-common",
  "openvm-stark-backend",
  "openvm-stark-sdk",
  "rand 0.8.5",
@@ -5458,8 +5480,7 @@ dependencies = [
 
 [[package]]
 name = "openvm-cuda-backend"
-version = "1.2.1"
-source = "git+https://github.com/openvm-org/stark-backend.git?tag=v1.2.1#dde6cdaf105cc57d1609fd49568c7bce0a066cc2"
+version = "1.2.2"
 dependencies = [
  "bincode 2.0.1",
  "bincode_derive",
@@ -5490,8 +5511,7 @@ dependencies = [
 
 [[package]]
 name = "openvm-cuda-builder"
-version = "1.2.1"
-source = "git+https://github.com/openvm-org/stark-backend.git?tag=v1.2.1#dde6cdaf105cc57d1609fd49568c7bce0a066cc2"
+version = "1.2.2"
 dependencies = [
  "cc",
  "glob",
@@ -5499,8 +5519,7 @@ dependencies = [
 
 [[package]]
 name = "openvm-cuda-common"
-version = "1.2.1"
-source = "git+https://github.com/openvm-org/stark-backend.git?tag=v1.2.1#dde6cdaf105cc57d1609fd49568c7bce0a066cc2"
+version = "1.2.2"
 dependencies = [
  "bytesize",
  "ctor",
@@ -5540,6 +5559,8 @@ dependencies = [
  "openvm-cuda-backend",
  "openvm-cuda-common",
  "openvm-ecc-transpiler",
+ "openvm-hip-backend",
+ "openvm-hip-common",
  "openvm-instructions",
  "openvm-mod-circuit-builder",
  "openvm-pairing-guest",
@@ -5638,6 +5659,59 @@ dependencies = [
 ]
 
 [[package]]
+name = "openvm-hip-backend"
+version = "1.2.2"
+dependencies = [
+ "bincode 2.0.1",
+ "bincode_derive",
+ "derivative",
+ "derive-new 0.7.0",
+ "itertools 0.14.0",
+ "lazy_static",
+ "metrics",
+ "openvm-hip-builder",
+ "openvm-hip-common",
+ "openvm-stark-backend",
+ "openvm-stark-sdk",
+ "p3-baby-bear",
+ "p3-commit",
+ "p3-dft",
+ "p3-field",
+ "p3-fri",
+ "p3-matrix",
+ "p3-merkle-tree",
+ "p3-symmetric",
+ "p3-util",
+ "rustc-hash 2.1.1",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tracing",
+]
+
+[[package]]
+name = "openvm-hip-builder"
+version = "1.2.2"
+dependencies = [
+ "cc",
+ "glob",
+]
+
+[[package]]
+name = "openvm-hip-common"
+version = "1.2.2"
+dependencies = [
+ "bytesize",
+ "ctor",
+ "cubecl-hip-sys",
+ "libc",
+ "metrics",
+ "openvm-hip-builder",
+ "thiserror 1.0.69",
+ "tracing",
+]
+
+[[package]]
 name = "openvm-instructions"
 version = "1.4.1"
 dependencies = [
@@ -5701,6 +5775,9 @@ dependencies = [
  "openvm-cuda-backend",
  "openvm-cuda-builder",
  "openvm-cuda-common",
+ "openvm-hip-backend",
+ "openvm-hip-builder",
+ "openvm-hip-common",
  "openvm-instructions",
  "openvm-keccak256-transpiler",
  "openvm-rv32im-circuit",
@@ -5755,6 +5832,9 @@ dependencies = [
  "openvm-cuda-backend",
  "openvm-cuda-builder",
  "openvm-cuda-common",
+ "openvm-hip-backend",
+ "openvm-hip-builder",
+ "openvm-hip-common",
  "openvm-instructions",
  "openvm-pairing-guest",
  "openvm-stark-backend",
@@ -5779,6 +5859,9 @@ dependencies = [
  "openvm-cuda-backend",
  "openvm-cuda-builder",
  "openvm-cuda-common",
+ "openvm-hip-backend",
+ "openvm-hip-builder",
+ "openvm-hip-common",
  "openvm-instructions",
  "openvm-native-circuit",
  "openvm-native-compiler",
@@ -5924,6 +6007,7 @@ dependencies = [
  "openvm-cuda-backend",
  "openvm-ecc-circuit",
  "openvm-ecc-guest",
+ "openvm-hip-backend",
  "openvm-instructions",
  "openvm-mod-circuit-builder",
  "openvm-pairing-guest",
@@ -6045,6 +6129,9 @@ dependencies = [
  "openvm-cuda-backend",
  "openvm-cuda-builder",
  "openvm-cuda-common",
+ "openvm-hip-backend",
+ "openvm-hip-builder",
+ "openvm-hip-common",
  "openvm-instructions",
  "openvm-rv32im-transpiler",
  "openvm-stark-backend",
@@ -6139,6 +6226,7 @@ dependencies = [
  "openvm-cuda-backend",
  "openvm-ecc-circuit",
  "openvm-ecc-transpiler",
+ "openvm-hip-backend",
  "openvm-keccak256-circuit",
  "openvm-keccak256-transpiler",
  "openvm-native-circuit",
@@ -6212,6 +6300,9 @@ dependencies = [
  "openvm-cuda-backend",
  "openvm-cuda-builder",
  "openvm-cuda-common",
+ "openvm-hip-backend",
+ "openvm-hip-builder",
+ "openvm-hip-common",
  "openvm-instructions",
  "openvm-rv32im-circuit",
  "openvm-sha256-air",
@@ -6246,8 +6337,7 @@ dependencies = [
 
 [[package]]
 name = "openvm-stark-backend"
-version = "1.2.1"
-source = "git+https://github.com/openvm-org/stark-backend.git?tag=v1.2.1#dde6cdaf105cc57d1609fd49568c7bce0a066cc2"
+version = "1.2.2"
 dependencies = [
  "bitcode",
  "cfg-if",
@@ -6276,8 +6366,7 @@ dependencies = [
 
 [[package]]
 name = "openvm-stark-sdk"
-version = "1.2.1"
-source = "git+https://github.com/openvm-org/stark-backend.git?tag=v1.2.1#dde6cdaf105cc57d1609fd49568c7bce0a066cc2"
+version = "1.2.2"
 dependencies = [
  "dashmap",
  "derivative",
@@ -8885,8 +8974,6 @@ dependencies = [
 [[package]]
 name = "svm-rs-builds"
 version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa64b5e8eecd3a8af7cfc311e29db31a268a62d5953233d3e8243ec77a71c4e3"
 dependencies = [
  "build_const",
  "hex",

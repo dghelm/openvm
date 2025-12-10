@@ -22,3 +22,6 @@ mod cuda_abi;
 
 #[cfg(feature = "cuda")]
 pub use cuda::*;
+
+#[cfg(feature = "rocm")]
+mod hip_abi;

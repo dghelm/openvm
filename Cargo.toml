@@ -112,12 +112,23 @@ incremental = true
 lto = "thin"
 
 [workspace.dependencies]
-# Stark Backend
-openvm-stark-backend = { git = "https://github.com/openvm-org/stark-backend.git", tag = "v1.2.1", default-features = false }
-openvm-stark-sdk = { git = "https://github.com/openvm-org/stark-backend.git", tag = "v1.2.1", default-features = false }
-openvm-cuda-backend = { git = "https://github.com/openvm-org/stark-backend.git", tag = "v1.2.1", default-features = false }
-openvm-cuda-builder = { git = "https://github.com/openvm-org/stark-backend.git", tag = "v1.2.1", default-features = false }
-openvm-cuda-common = { git = "https://github.com/openvm-org/stark-backend.git", tag = "v1.2.1", default-features = false }
+# Stark Backend - using local path for development
+# TODO(pre-merge): Replace path deps with git URLs after stark-backend HIP changes are pushed:
+#   1. Push stark-backend feat/hip-addition branch to upstream or fork
+#   2. Update these to: { git = "https://github.com/openvm-org/stark-backend.git", rev = "<commit>", default-features = false }
+#   3. Run `cargo update` to regenerate Cargo.lock
+openvm-stark-backend = { path = "../stark-backend/crates/stark-backend", default-features = false }
+openvm-stark-sdk = { path = "../stark-backend/crates/stark-sdk", default-features = false }
+openvm-cuda-backend = { path = "../stark-backend/crates/cuda-backend", default-features = false }
+openvm-cuda-builder = { path = "../stark-backend/crates/cuda-builder", default-features = false }
+openvm-cuda-common = { path = "../stark-backend/crates/cuda-common", default-features = false }
+
+# HIP/ROCm Backend (AMD GPUs) - requires ROCm 6.0+ installed
+# See docs/rocm-usage.md for environment variables and build instructions.
+# The `cuda` and `rocm` features are mutually exclusive.
+openvm-hip-backend = { path = "../stark-backend/crates/hip-backend", default-features = false }
+openvm-hip-builder = { path = "../stark-backend/crates/hip-builder", default-features = false }
+openvm-hip-common = { path = "../stark-backend/crates/hip-common", default-features = false }
 
 # OpenVM
 openvm-sdk = { path = "crates/sdk", default-features = false }
@@ -198,22 +209,6 @@ halo2curves-axiom = "0.7.0"
 
 forge-fmt = "0.2.0"
 cargo_metadata = "0.18"
-alloy-sol-types = "0.8.25"
-tracing = "0.1.40"
-bon = "3.2.0"
-serde_json = "1.0.117"
-serde_with = "3.11.0"
-clap = "4.5.23"
-toml = "0.8.14"
-lazy_static = "1.5.0"
-derive-new = "0.6.0"
-derive_more = { version = "1.0.0", features = [
-    "display",
-], default-features = false }
-derivative = "2.2.0"
-strum_macros = "0.26.4"
-strum = { version = "0.26.3", features = ["derive"] }
-backtrace = "0.3.71"
 metrics = "0.23.0"
 cfg-if = "1.0.0"
 test-case = "3.3.1"
@@ -234,6 +229,20 @@ memmap2 = "0.9.5"
 libc = "0.2.175"
 tracing-subscriber = { version = "0.3.20", features = ["std", "env-filter"] }
 tokio = "1" # >=1.0.0 to allow downstream flexibility
+clap = "4.5.23"
+alloy-sol-types = "0.8.25"
+tracing = "0.1.40"
+serde_json = "1.0.117"
+serde_with = "3.11.0"
+toml = "0.8.14"
+lazy_static = "1.5.0"
+derive-new = "0.6.0"
+derive_more = { version = "1.0.0", features = ["display"], default-features = false }
+derivative = "2.2.0"
+strum_macros = "0.26.4"
+strum = { version = "0.26.3", features = ["derive"] }
+backtrace = "0.3.71"
+bon = "3.2.0"
 
 # default-features = false for no_std for use in guest programs
 itertools = { version = "0.14.0", default-features = false }
@@ -256,6 +265,9 @@ sha2 = { version = "0.10", default-features = false }
 
 # specific to CUDA and GPU
 cuda-runtime-sys = "0.3.0-alpha.1"
+
+[patch.crates-io]
+svm-rs-builds = { path = "vendor/svm-rs-builds" }
 
 # For local development. Add to your `.cargo/config.toml`
 # [patch."https://github.com/Plonky3/Plonky3.git"]

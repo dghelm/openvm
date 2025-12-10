@@ -1,6 +1,6 @@
 #pragma once
 
-#include "trace_access.h"
+#include "trace_access.h" // Includes DEVICE_INLINE macro
 
 namespace IsEqual {
 /**
@@ -14,7 +14,7 @@ namespace IsEqual {
  * @param inv_diff Field inverse of x - y if x != y, else 0
  * @param out_ptr Boolean value equal to x == y
  */
-__device__ __forceinline__ void generate_subrow(Fp x, Fp y, Fp *inv_diff, Fp *out) {
+DEVICE_INLINE void generate_subrow(Fp x, Fp y, Fp *inv_diff, Fp *out) {
     *inv_diff = (x == y) ? Fp::zero() : inv(x - y);
     *out = (x == y) ? Fp::one() : Fp::zero();
 }
@@ -24,17 +24,17 @@ namespace IsEqualArray {
 /**
  * @brief Generates columns needed to constrain out == (x == y) where
  *        x and y are represented by arr_length limbs.
- * 
+ *
  * @section Trace Context Parameters
  * @param arr_length Number of limbs to represent x and y
  * @param x First value to compare
  * @param y Second value to compare
- * 
+ *
  * @section Mutable Column Parameters
  * @param diff_inv_marker Marks most significant limb difference between x and y
  * @param out_ptr Boolean value equal to x == y
  */
-__device__ __forceinline__ void generate_subrow(
+DEVICE_INLINE void generate_subrow(
     uint32_t arr_length,
     RowSlice x,
     RowSlice y,

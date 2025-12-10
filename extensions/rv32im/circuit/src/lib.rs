@@ -70,6 +70,9 @@ cfg_if::cfg_if! {
     }
 }
 
+#[cfg(feature = "rocm")]
+pub(crate) mod hip_abi;
+
 #[cfg(any(test, feature = "test-utils"))]
 mod test_utils;
 

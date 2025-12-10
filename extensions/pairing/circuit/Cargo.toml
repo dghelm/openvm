@@ -25,6 +25,7 @@ openvm-algebra-circuit = { workspace = true }
 openvm-ecc-circuit = { workspace = true }
 openvm-pairing-transpiler = { workspace = true }
 openvm-cuda-backend = { workspace = true, optional = true }
+openvm-hip-backend = { workspace = true, optional = true }
 openvm-stark-sdk = { workspace = true, optional = true }
 
 num-bigint = { workspace = true }
@@ -63,6 +64,14 @@ cuda = [
     "openvm-circuit/cuda",
     "openvm-algebra-circuit/cuda",
     "openvm-ecc-circuit/cuda",
+]
+rocm = [
+    "dep:openvm-hip-backend",
+    "dep:openvm-stark-sdk",
+    "openvm-circuit-primitives/rocm",
+    "openvm-circuit/rocm",
+    "openvm-algebra-circuit/rocm",
+    "openvm-ecc-circuit/rocm",
 ]
 touchemall = [
     "cuda",

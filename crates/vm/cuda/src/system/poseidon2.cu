@@ -5,7 +5,19 @@
 #include "primitives/trace_access.h"
 #include "primitives/utils.cuh"
 #include <cstdint>
+
+// HIP/CUDA CUB library compatibility
+#if defined(__HIPCC__)
+#include <hip/hip_runtime.h>
+#include <hipcub/hipcub.hpp>
+namespace cub = hipcub;
+#define GPU_STREAM_PER_THREAD hipStreamPerThread
+#define GPU_ERROR_INVALID_CONFIGURATION hipErrorInvalidConfiguration
+#else
 #include <cub/cub.cuh>
+#define GPU_STREAM_PER_THREAD GPU_STREAM_PER_THREAD
+#define GPU_ERROR_INVALID_CONFIGURATION GPU_ERROR_INVALID_CONFIGURATION
+#endif
 
 template <size_t WIDTH, typename PoseidonParams>
 __global__ void cukernel_system_poseidon2_tracegen(
@@ -57,18 +69,18 @@ extern "C" int _system_poseidon2_tracegen(
     switch (sbox_regs) {
     case 1:
         cukernel_system_poseidon2_tracegen<16, Poseidon2ParamsS1>
-            <<<grid, block, 0, cudaStreamPerThread>>>(
+            <<<grid, block, 0, GPU_STREAM_PER_THREAD>>>(
                 d_trace, height, width, d_records, d_counts, num_records
             );
         break;
     case 0:
         cukernel_system_poseidon2_tracegen<16, Poseidon2ParamsS0>
-            <<<grid, block, 0, cudaStreamPerThread>>>(
+            <<<grid, block, 0, GPU_STREAM_PER_THREAD>>>(
                 d_trace, height, width, d_records, d_counts, num_records
             );
         break;
     default:
-        return cudaErrorInvalidConfiguration;
+        return GPU_ERROR_INVALID_CONFIGURATION;
     }
 
     return CHECK_KERNEL();
@@ -99,7 +111,7 @@ extern "C" int _system_poseidon2_deduplicate_records_get_temp_bytes(
         d_records_fp16,
         num_records,
         Fp16CompareOp(),
-        cudaStreamPerThread
+        GPU_STREAM_PER_THREAD
     );
 
     size_t reduce_storage_bytes = 0;
@@ -113,7 +125,7 @@ extern "C" int _system_poseidon2_deduplicate_records_get_temp_bytes(
         d_num_records,
         std::plus(),
         num_records,
-        cudaStreamPerThread
+        GPU_STREAM_PER_THREAD
     );
 
     *h_temp_bytes_out = std::max(sort_storage_bytes, reduce_storage_bytes);
@@ -143,7 +155,7 @@ extern "C" int _system_poseidon2_deduplicate_records(
         d_records_fp16,
         num_records,
         Fp16CompareOp(),
-        cudaStreamPerThread
+        GPU_STREAM_PER_THREAD
     );
 
     // Removes duplicate values from d_records, and stores the number of times
@@ -159,7 +171,7 @@ extern "C" int _system_poseidon2_deduplicate_records(
         d_num_records,
         std::plus(),
         num_records,
-        cudaStreamPerThread
+        GPU_STREAM_PER_THREAD
     );
 
     return CHECK_KERNEL();

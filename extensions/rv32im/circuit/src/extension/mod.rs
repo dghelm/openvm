@@ -43,6 +43,11 @@ cfg_if::cfg_if! {
         pub use cuda::{
             Rv32ImGpuProverExt as Rv32ImGpuProverExt,
         };
+    } else if #[cfg(feature = "rocm")] {
+        mod hip;
+        pub use hip::{
+            Rv32ImHipProverExt as Rv32ImHipProverExt,
+        };
     } else {
         pub use self::{
             Rv32ImCpuProverExt as Rv32ImProverExt,

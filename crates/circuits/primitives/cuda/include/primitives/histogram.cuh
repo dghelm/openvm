@@ -6,7 +6,7 @@
 
 /**
  * @file histogram.cuh
- * @brief Device-side helpers for local histogram accumulation in CUDA.
+ * @brief Device-side helpers for local histogram accumulation in CUDA/HIP.
  */
 
 static constexpr uint WARP_MASK = WARP_SIZE - 1;
@@ -24,7 +24,12 @@ struct Histogram {
 
     __device__ void add_count(uint32_t idx) {
         if (idx < num_bins) {
-            // Warp-level deduplicated atomicAdd
+#if defined(__HIPCC__)
+            // HIP: Use simple atomicAdd - warp intrinsics like __match_any_sync
+            // are not available in HIP. This is simpler but may have more contention.
+            atomicAdd(&global_hist[idx], 1);
+#else
+            // CUDA: Warp-level deduplicated atomicAdd for better performance
             auto curr_mask = __activemask();
             auto same_mask = __match_any_sync(curr_mask, idx);
             auto leader = __ffs(same_mask) - 1;
@@ -33,6 +38,7 @@ struct Histogram {
             if ((threadIdx.x & WARP_MASK) == leader) {
                 atomicAdd(&global_hist[idx], __popc(same_mask));
             }
+#endif
         }
     }
 };
@@ -58,14 +64,14 @@ struct VariableRangeChecker {
 
     __device__ uint32_t max_bits() const { return 30 - __clz(hist.num_bins); }
 
-    __device__ __forceinline__ void decompose(
+    DEVICE_INLINE void decompose(
         uint32_t x,
         size_t bits,
         RowSlice limbs,
         const size_t limbs_len
     ) {
         size_t range_max_bits = max_bits();
-#ifdef CUDA_DEBUG
+#if defined(CUDA_DEBUG) || defined(HIP_DEBUG)
         assert(limbs_len >= d_div_ceil(bits, range_max_bits));
 #endif
         uint32_t mask = (1 << range_max_bits) - 1;
@@ -78,7 +84,7 @@ struct VariableRangeChecker {
             x >>= range_max_bits;
             bits_remaining -= min(bits_remaining, range_max_bits);
         }
-#ifdef CUDA_DEBUG
+#if defined(CUDA_DEBUG) || defined(HIP_DEBUG)
         assert(bits_remaining == 0 && x == 0);
 #endif
     }

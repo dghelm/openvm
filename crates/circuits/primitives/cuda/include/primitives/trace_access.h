@@ -3,6 +3,16 @@
 #include "fp.h"
 #include <cstddef>
 
+// HIP/CUDA device function compatibility
+// Define DEVICE_INLINE if not already defined (e.g., from launcher.cuh)
+#ifndef DEVICE_INLINE
+#if defined(__HIPCC__)
+#define DEVICE_INLINE __device__ __attribute__((always_inline)) inline
+#else
+#define DEVICE_INLINE DEVICE_INLINE
+#endif
+#endif
+
 /// A RowSlice is a contiguous section of a row in col-based trace.
 struct RowSlice {
     Fp *ptr;
@@ -10,7 +20,7 @@ struct RowSlice {
 
     __device__ RowSlice(Fp *ptr, size_t stride) : ptr(ptr), stride(stride) {}
 
-    __device__ __forceinline__ Fp &operator[](size_t column_index) const {
+    DEVICE_INLINE Fp &operator[](size_t column_index) const {
         // While implementing tracegen for SHA256, we encountered what we believe to be an nvcc
         // compiler bug. Occasionally, at various non-zero PTXAS optimization levels the compiler
         // tries to replace this multiplication with a series of SHL, ADD, and AND instructions
@@ -24,12 +34,12 @@ struct RowSlice {
     __device__ bool is_valid() const { return ptr != nullptr; }
 
     template <typename T>
-    __device__ __forceinline__ void write(size_t column_index, T value) const {
+    DEVICE_INLINE void write(size_t column_index, T value) const {
         ptr[column_index * stride] = value;
     }
 
     template <typename T>
-    __device__ __forceinline__ void write_array(size_t column_index, size_t length, const T *values)
+    DEVICE_INLINE void write_array(size_t column_index, size_t length, const T *values)
         const {
 #pragma unroll
         for (size_t i = 0; i < length; i++) {
@@ -38,25 +48,25 @@ struct RowSlice {
     }
 
     template <typename T>
-    __device__ __forceinline__ void write_bits(size_t column_index, const T value) const {
+    DEVICE_INLINE void write_bits(size_t column_index, const T value) const {
 #pragma unroll
         for (size_t i = 0; i < sizeof(T) * 8; i++) {
             ptr[(column_index + i) * stride] = (value >> i) & 1;
         }
     }
 
-    __device__ __forceinline__ void fill_zero(size_t column_index_from, size_t length) const {
+    DEVICE_INLINE void fill_zero(size_t column_index_from, size_t length) const {
 #pragma unroll
         for (size_t i = 0, c = column_index_from; i < length; i++, c++) {
             ptr[c * stride] = 0;
         }
     }
 
-    __device__ __forceinline__ RowSlice slice_from(size_t column_index) const {
+    DEVICE_INLINE RowSlice slice_from(size_t column_index) const {
         return RowSlice(ptr + column_index * stride, stride);
     }
 
-    __device__ __forceinline__ RowSlice shift_row(size_t n) const {
+    DEVICE_INLINE RowSlice shift_row(size_t n) const {
         return RowSlice(ptr + n, stride);
     }
 };

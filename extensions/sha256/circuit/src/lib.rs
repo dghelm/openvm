@@ -43,6 +43,9 @@ cfg_if::cfg_if! {
     }
 }
 
+#[cfg(feature = "rocm")]
+pub(crate) mod hip_abi;
+
 #[derive(Clone, Debug, VmConfig, derive_new::new, Serialize, Deserialize)]
 pub struct Sha256Rv32Config {
     #[config(executor = "SystemExecutor<F>")]

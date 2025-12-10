@@ -2,7 +2,13 @@
 #include "launcher.cuh"
 #include "primitives/trace_access.h"
 #include "system/program.cuh"
+
+// HIP/CUDA runtime compatibility
+#if defined(__HIPCC__)
+#include <hip/hip_runtime.h>
+#else
 #include <cuda_runtime.h>
+#endif
 
 __global__ void program_testing_tracegen(
     Fp *trace,

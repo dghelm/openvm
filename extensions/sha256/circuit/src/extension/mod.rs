@@ -32,6 +32,10 @@ cfg_if::cfg_if! {
         mod cuda;
         pub use self::cuda::*;
         pub use self::cuda::Sha256GpuProverExt as Sha256ProverExt;
+    } else if #[cfg(feature = "rocm")] {
+        mod hip;
+        pub use self::hip::*;
+        pub use self::hip::Sha256HipProverExt as Sha256ProverExt;
     } else {
         pub use self::Sha2CpuProverExt as Sha256ProverExt;
     }

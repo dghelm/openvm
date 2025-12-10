@@ -10,6 +10,8 @@ openvm-stark-backend = { workspace = true }
 openvm-stark-sdk = { workspace = true }
 openvm-cuda-backend = { workspace = true, optional = true }
 openvm-cuda-common = { workspace = true, optional = true }
+openvm-hip-backend = { workspace = true, optional = true }
+openvm-hip-common = { workspace = true, optional = true }
 openvm-circuit-primitives = { workspace = true }
 openvm-circuit-derive = { workspace = true }
 openvm-circuit = { workspace = true }
@@ -33,6 +35,7 @@ openvm-circuit = { workspace = true, features = ["test-utils"] }
 
 [build-dependencies]
 openvm-cuda-builder = { workspace = true, optional = true }
+openvm-hip-builder = { workspace = true, optional = true }
 
 [features]
 default = ["parallel", "jemalloc"]
@@ -52,6 +55,15 @@ cuda = [
     "openvm-circuit-primitives/cuda",
     "openvm-circuit/cuda",
     "openvm-rv32im-circuit/cuda",
+]
+rocm = [
+    "dep:openvm-hip-builder",
+    "dep:openvm-hip-common",
+    "dep:openvm-hip-backend",
+    "dep:openvm-cuda-common",  # Shared headers (launcher.cuh, fp.h, baby_bear.hpp)
+    "openvm-circuit-primitives/rocm",
+    "openvm-circuit/rocm",
+    "openvm-rv32im-circuit/rocm",
 ]
 touchemall = [
     "cuda",

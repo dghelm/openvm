@@ -44,6 +44,13 @@ cfg_if::cfg_if! {
             Int256GpuProverExt as Int256ProverExt,
             Int256Rv32GpuBuilder as Int256Rv32Builder,
         };
+    } else if #[cfg(feature = "rocm")] {
+        mod hip;
+        pub use self::hip::*;
+        pub use self::hip::{
+            Int256HipProverExt as Int256ProverExt,
+            Int256Rv32HipBuilder as Int256Rv32Builder,
+        };
     } else {
         pub use self::{
             Int256CpuProverExt as Int256ProverExt,

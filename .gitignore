@@ -47,3 +47,8 @@ profile.json.gz
 
 # test fixtures
 benchmarks/fixtures
+
+references
+
+# Vendored dependencies (e.g., HIP/ROCm development)
+vendor/

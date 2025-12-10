@@ -2,6 +2,7 @@
 
 #include "histogram.cuh"
 #include "fp_array.cuh"
+// DEVICE_INLINE is provided by trace_access.h (included via histogram.cuh)
 
 static const size_t AUX_LEN = 2;
 
@@ -30,7 +31,7 @@ namespace AssertLessThan {
  * @section Mutable Column Parameters
  * @param lower_decomp Columns used to constrain x < y
  */
-__device__ __forceinline__ void generate_subrow(
+DEVICE_INLINE void generate_subrow(
     VariableRangeChecker &rc,
     const uint32_t max_bits,
     uint32_t x,
@@ -57,7 +58,7 @@ namespace IsLessThan {
  * @param lower_decomp Columns used to constrain out_flag == (x < y)
  * @param out_flag Boolean value equal to x < y
  */
-__device__ __forceinline__ void generate_subrow(
+DEVICE_INLINE void generate_subrow(
     VariableRangeChecker &rc,
     const uint32_t max_bits,
     uint32_t x,
@@ -92,7 +93,7 @@ namespace IsLessThanArray {
  * @param lt_decomp Columns used to constrain outflag == (x < y)
  * @param out_flag Boolean value equal to x < y
  */
-__device__ __forceinline__ void generate_subrow(
+DEVICE_INLINE void generate_subrow(
     VariableRangeChecker &rc,
     const uint32_t max_bits,
     const RowSlice x,
@@ -129,7 +130,7 @@ __device__ __forceinline__ void generate_subrow(
 }
 
 template <size_t N>
-__device__ __forceinline__ void generate_subrow(
+DEVICE_INLINE void generate_subrow(
     VariableRangeChecker &rc,
     const uint32_t max_bits,
     FpArray<N> x,

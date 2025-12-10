@@ -20,6 +20,10 @@
 //! - [is_less_than_array]
 //! - [is_zero]
 
+// GPU backend mutual exclusion: cannot enable both cuda and rocm at the same time
+#[cfg(all(feature = "cuda", feature = "rocm"))]
+compile_error!("Features `cuda` and `rocm` are mutually exclusive. Choose one GPU backend.");
+
 /// Derive macros
 pub use openvm_circuit_primitives_derive::*;
 
@@ -44,3 +48,6 @@ pub use sub_air::*;
 
 #[cfg(feature = "cuda")]
 pub(crate) mod cuda_abi;
+
+#[cfg(feature = "rocm")]
+pub(crate) mod hip_abi;

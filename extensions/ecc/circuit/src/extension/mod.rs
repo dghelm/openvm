@@ -30,6 +30,13 @@ cfg_if::cfg_if! {
             EccHybridProverExt as EccProverExt,
             Rv32WeierstrassHybridBuilder as Rv32WeierstrassBuilder,
         };
+    } else if #[cfg(feature = "rocm")] {
+        mod hip;
+        pub use hip::*;
+        pub use {
+            EccHybridHipProverExt as EccProverExt,
+            Rv32WeierstrassHybridHipBuilder as Rv32WeierstrassBuilder,
+        };
     } else {
         pub use self::{
             EccCpuProverExt as EccProverExt,

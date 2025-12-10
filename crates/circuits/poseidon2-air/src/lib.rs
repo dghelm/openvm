@@ -31,6 +31,9 @@ pub use permute::*;
 #[cfg(all(feature = "cuda", test))]
 mod cuda_abi;
 
+#[cfg(all(feature = "rocm", test))]
+mod hip_abi;
+
 #[cfg(test)]
 mod tests;
 

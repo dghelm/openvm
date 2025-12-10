@@ -1,5 +1,10 @@
 #![cfg_attr(feature = "tco", allow(incomplete_features))]
 #![cfg_attr(feature = "tco", feature(explicit_tail_calls))]
+
+// GPU backend mutual exclusion: cannot enable both cuda and rocm at the same time
+#[cfg(all(feature = "cuda", feature = "rocm"))]
+compile_error!("Features `cuda` and `rocm` are mutually exclusive. Choose one GPU backend.");
+
 use std::{
     borrow::Borrow,
     fs::read,
@@ -76,6 +81,13 @@ cfg_if::cfg_if! {
         use openvm_native_circuit::NativeGpuBuilder;
         pub use GpuSdk as Sdk;
         pub type DefaultStarkEngine = GpuBabyBearPoseidon2Engine;
+    } else if #[cfg(feature = "rocm")] {
+        // HIP/ROCm backend for AMD GPUs.
+        use config::SdkVmHipBuilder;
+        use openvm_hip_backend::engine::HipBabyBearPoseidon2Engine;
+        use openvm_native_circuit::NativeHipBuilder;
+        pub use HipSdk as Sdk;
+        pub type DefaultStarkEngine = HipBabyBearPoseidon2Engine;
     } else {
         pub use CpuSdk as Sdk;
         pub type DefaultStarkEngine = BabyBearPoseidon2Engine;
@@ -171,6 +183,12 @@ pub type CpuSdk = GenericSdk<BabyBearPoseidon2Engine, SdkVmCpuBuilder, NativeCpu
 
 #[cfg(feature = "cuda")]
 pub type GpuSdk = GenericSdk<GpuBabyBearPoseidon2Engine, SdkVmGpuBuilder, NativeGpuBuilder>;
+
+/// HIP SDK type alias - full HIP/ROCm backend for AMD GPUs.
+/// Uses HIP-accelerated proving for stark-backend operations (NTT, FRI, Poseidon2, etc.)
+/// and HIP chips for VM extensions where available.
+#[cfg(feature = "rocm")]
+pub type HipSdk = GenericSdk<HipBabyBearPoseidon2Engine, SdkVmHipBuilder, NativeHipBuilder>;
 
 impl<E, VB, NativeBuilder> GenericSdk<E, VB, NativeBuilder>
 where

@@ -3,6 +3,13 @@
 #include "primitives/buffer_view.cuh"
 #include "primitives/trace_access.h"
 
+// HIP/CUDA error code compatibility
+#if defined(__HIPCC__)
+#define GPU_ERROR_INVALID_VALUE hipErrorInvalidValue
+#else
+#define GPU_ERROR_INVALID_VALUE GPU_ERROR_INVALID_VALUE
+#endif
+
 using namespace riscv;
 using namespace program;
 using namespace native;
@@ -126,7 +133,7 @@ extern "C" int _native_loadstore_tracegen(
         );
         break;
     default:
-        return cudaErrorInvalidValue;
+        return GPU_ERROR_INVALID_VALUE;
     }
 
     return CHECK_KERNEL();

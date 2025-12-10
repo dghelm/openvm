@@ -57,6 +57,23 @@ cfg_if::cfg_if! {
         use openvm_rv32im_circuit::Rv32ImGpuProverExt;
         use openvm_sha256_circuit::Sha256GpuProverExt;
         pub use SdkVmGpuBuilder as SdkVmBuilder;
+    } else if #[cfg(feature = "rocm")] {
+        // HIP/ROCm backend support
+        use openvm_algebra_circuit::AlgebraProverExt;
+        use openvm_bigint_circuit::Int256ProverExt;
+        use openvm_circuit::{
+            arch::DenseRecordArena,
+            system::hip::{extensions::SystemHipBuilder, SystemChipInventoryHIP},
+        };
+        use openvm_ecc_circuit::EccProverExt;
+        use openvm_hip_backend::{
+            engine::HipBabyBearPoseidon2Engine, prover_backend::HipBackend,
+        };
+        use openvm_keccak256_circuit::Keccak256ProverExt;
+        use openvm_native_circuit::NativeProverExt;
+        use openvm_rv32im_circuit::Rv32ImHipProverExt;
+        use openvm_sha256_circuit::Sha256ProverExt;
+        pub use SdkVmHipBuilder as SdkVmBuilder;
     } else {
         pub use SdkVmCpuBuilder as SdkVmBuilder;
     }
@@ -470,6 +487,75 @@ impl VmBuilder<GpuBabyBearPoseidon2Engine> for SdkVmGpuBuilder {
         }
         if let Some(bigint) = &config.bigint {
             VmProverExtension::<E, _, _>::extend_prover(&Int256GpuProverExt, bigint, inventory)?;
+        }
+        if let Some(modular) = &config.modular {
+            VmProverExtension::<E, _, _>::extend_prover(&AlgebraProverExt, modular, inventory)?;
+        }
+        if let Some(fp2) = &config.fp2 {
+            VmProverExtension::<E, _, _>::extend_prover(&AlgebraProverExt, fp2, inventory)?;
+        }
+        if let Some(pairing) = &config.pairing {
+            VmProverExtension::<E, _, _>::extend_prover(&PairingProverExt, pairing, inventory)?;
+        }
+        if let Some(ecc) = &config.ecc {
+            VmProverExtension::<E, _, _>::extend_prover(&EccProverExt, ecc, inventory)?;
+        }
+        Ok(chip_complex)
+    }
+}
+
+#[cfg(feature = "rocm")]
+#[derive(Copy, Clone, Default)]
+pub struct SdkVmHipBuilder;
+
+#[cfg(feature = "rocm")]
+impl VmBuilder<HipBabyBearPoseidon2Engine> for SdkVmHipBuilder {
+    type VmConfig = SdkVmConfig;
+    type SystemChipInventory = SystemChipInventoryHIP;
+    type RecordArena = DenseRecordArena;
+
+    fn create_chip_complex(
+        &self,
+        config: &SdkVmConfig,
+        circuit: AirInventory<openvm_stark_sdk::config::baby_bear_poseidon2::BabyBearPoseidon2Config>,
+    ) -> Result<
+        VmChipComplex<
+            openvm_stark_sdk::config::baby_bear_poseidon2::BabyBearPoseidon2Config,
+            Self::RecordArena,
+            HipBackend,
+            Self::SystemChipInventory,
+        >,
+        ChipInventoryError,
+    > {
+        type E = HipBabyBearPoseidon2Engine;
+
+        let config = config.to_inner();
+        let mut chip_complex =
+            VmBuilder::<E>::create_chip_complex(&SystemHipBuilder, &config.system, circuit)?;
+        let inventory = &mut chip_complex.inventory;
+        if let Some(rv32i) = &config.rv32i {
+            VmProverExtension::<E, _, _>::extend_prover(&Rv32ImHipProverExt, rv32i, inventory)?;
+        }
+        if let Some(io) = &config.io {
+            VmProverExtension::<E, _, _>::extend_prover(&Rv32ImHipProverExt, io, inventory)?;
+        }
+        if let Some(keccak) = &config.keccak {
+            VmProverExtension::<E, _, _>::extend_prover(&Keccak256ProverExt, keccak, inventory)?;
+        }
+        if let Some(sha256) = &config.sha256 {
+            VmProverExtension::<E, _, _>::extend_prover(&Sha256ProverExt, sha256, inventory)?;
+        }
+        if let Some(native) = &config.native {
+            VmProverExtension::<E, _, _>::extend_prover(&NativeProverExt, native, inventory)?;
+        }
+        if let Some(castf) = &config.castf {
+            VmProverExtension::<E, _, _>::extend_prover(&NativeProverExt, castf, inventory)?;
+        }
+        if let Some(rv32m) = &config.rv32m {
+            VmProverExtension::<E, _, _>::extend_prover(&Rv32ImHipProverExt, rv32m, inventory)?;
+        }
+        if let Some(bigint) = &config.bigint {
+            VmProverExtension::<E, _, _>::extend_prover(&Int256ProverExt, bigint, inventory)?;
         }
         if let Some(modular) = &config.modular {
             VmProverExtension::<E, _, _>::extend_prover(&AlgebraProverExt, modular, inventory)?;

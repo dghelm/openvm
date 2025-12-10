@@ -14,6 +14,11 @@ mod cuda;
 #[cfg(feature = "cuda")]
 pub use cuda::*;
 
+#[cfg(feature = "rocm")]
+mod hip;
+#[cfg(feature = "rocm")]
+pub use hip::*;
+
 #[cfg(test)]
 mod tests;
 

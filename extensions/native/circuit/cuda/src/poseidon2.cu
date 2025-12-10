@@ -5,6 +5,13 @@
 #include "primitives/trace_access.h"
 #include "system/memory/controller.cuh"
 
+// HIP/CUDA error code compatibility
+#if defined(__HIPCC__)
+#define GPU_ERROR_INVALID_CONFIGURATION hipErrorInvalidConfiguration
+#else
+#define GPU_ERROR_INVALID_CONFIGURATION GPU_ERROR_INVALID_CONFIGURATION
+#endif
+
 using namespace poseidon2;
 
 static const size_t WIDTH = 16;
@@ -443,7 +450,7 @@ extern "C" int _native_poseidon2_tracegen(
         );
         break;
     default:
-        return cudaErrorInvalidConfiguration;
+        return GPU_ERROR_INVALID_CONFIGURATION;
     }
     return CHECK_KERNEL();
 }

@@ -1,6 +1,11 @@
 #![cfg_attr(feature = "tco", allow(incomplete_features))]
 #![cfg_attr(feature = "tco", feature(explicit_tail_calls))]
 #![cfg_attr(feature = "tco", feature(core_intrinsics))]
+
+// GPU backend mutual exclusion: cannot enable both cuda and rocm at the same time
+#[cfg(all(feature = "cuda", feature = "rocm"))]
+compile_error!("Features `cuda` and `rocm` are mutually exclusive. Choose one GPU backend.");
+
 extern crate self as openvm_circuit;
 
 pub use openvm_circuit_derive as derive;
@@ -24,3 +29,6 @@ pub mod utils;
 
 #[cfg(feature = "cuda")]
 pub(crate) mod cuda_abi;
+
+#[cfg(feature = "rocm")]
+pub(crate) mod hip_abi;

@@ -21,6 +21,8 @@ openvm-rv32-adapters = { workspace = true }
 openvm-algebra-transpiler = { workspace = true }
 openvm-cuda-backend = { workspace = true, optional = true }
 openvm-cuda-common = { workspace = true, optional = true }
+openvm-hip-backend = { workspace = true, optional = true }
+openvm-hip-common = { workspace = true, optional = true }
 
 halo2curves-axiom = { workspace = true }
 num-bigint = { workspace = true, features = ["serde"] }
@@ -43,6 +45,7 @@ test-case = { workspace = true }
 
 [build-dependencies]
 openvm-cuda-builder = { workspace = true, optional = true }
+openvm-hip-builder = { workspace = true, optional = true }
 
 [features]
 default = []
@@ -55,6 +58,16 @@ cuda = [
     "openvm-mod-circuit-builder/cuda",
     "openvm-circuit/cuda",
     "openvm-rv32im-circuit/cuda",
+]
+rocm = [
+    "dep:openvm-hip-common",
+    "dep:openvm-hip-backend",
+    "dep:openvm-hip-builder",
+    "dep:openvm-cuda-common",  # Shared headers (launcher.cuh, fp.h, baby_bear.hpp)
+    "openvm-circuit-primitives/rocm",
+    "openvm-mod-circuit-builder/rocm",
+    "openvm-circuit/rocm",
+    "openvm-rv32im-circuit/rocm",
 ]
 touchemall = [
     "cuda",
