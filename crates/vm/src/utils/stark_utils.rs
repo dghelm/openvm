@@ -24,6 +24,10 @@ cfg_if::cfg_if! {
         pub use openvm_cuda_backend::{engine::GpuBabyBearPoseidon2Engine as TestStarkEngine, chip::cpu_proving_ctx_to_gpu};
         use crate::arch::DenseRecordArena;
         pub type TestRecordArena = DenseRecordArena;
+    } else if #[cfg(feature = "rocm")] {
+        pub use openvm_hip_backend::engine::HipBabyBearPoseidon2Engine as TestStarkEngine;
+        use crate::arch::DenseRecordArena;
+        pub type TestRecordArena = DenseRecordArena;
     } else {
         pub use openvm_stark_sdk::config::baby_bear_poseidon2::BabyBearPoseidon2Engine as TestStarkEngine;
         use crate::arch::MatrixRecordArena;
