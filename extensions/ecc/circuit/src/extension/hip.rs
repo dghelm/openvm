@@ -43,7 +43,8 @@ pub struct HybridWeierstrassChipHip<
 // Auto-implementation of Chip for HipBackend for a Cpu Chip by doing conversion
 // of Dense->Matrix Record Arena, cpu tracegen, and then H2D transfer of the trace matrix.
 impl<const NUM_READS: usize, const BLOCKS: usize, const BLOCK_SIZE: usize>
-    Chip<DenseRecordArena, HipBackend> for HybridWeierstrassChipHip<F, NUM_READS, BLOCKS, BLOCK_SIZE>
+    Chip<DenseRecordArena, HipBackend>
+    for HybridWeierstrassChipHip<F, NUM_READS, BLOCKS, BLOCK_SIZE>
 {
     fn generate_proving_ctx(&self, mut arena: DenseRecordArena) -> AirProvingContext<HipBackend> {
         let total_input_limbs =

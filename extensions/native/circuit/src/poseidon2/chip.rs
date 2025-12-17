@@ -84,7 +84,7 @@ pub(super) const NUM_SIMPLE_ACCESSES: u32 = 7;
 
 #[derive(Debug, Clone, Default)]
 pub struct NativePoseidon2Metadata {
-    num_rows: usize,
+    pub num_rows: usize,
 }
 
 impl MultiRowMetadata for NativePoseidon2Metadata {

@@ -517,7 +517,9 @@ impl VmBuilder<HipBabyBearPoseidon2Engine> for SdkVmHipBuilder {
     fn create_chip_complex(
         &self,
         config: &SdkVmConfig,
-        circuit: AirInventory<openvm_stark_sdk::config::baby_bear_poseidon2::BabyBearPoseidon2Config>,
+        circuit: AirInventory<
+            openvm_stark_sdk::config::baby_bear_poseidon2::BabyBearPoseidon2Config,
+        >,
     ) -> Result<
         VmChipComplex<
             openvm_stark_sdk::config::baby_bear_poseidon2::BabyBearPoseidon2Config,

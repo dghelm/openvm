@@ -555,8 +555,8 @@ fn elem_to_ext<F: Field>(elem: F) -> [F; EXT_DEG] {
 
 #[derive(Copy, Clone, Debug)]
 pub struct FriReducedOpeningMetadata {
-    length: usize,
-    is_init: bool,
+    pub length: usize,
+    pub is_init: bool,
 }
 
 impl MultiRowMetadata for FriReducedOpeningMetadata {

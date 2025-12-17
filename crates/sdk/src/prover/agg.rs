@@ -306,7 +306,6 @@ impl LeafProvingController {
         }
         let leaf_inputs =
             LeafVmVerifierInput::chunk_continuation_vm_proof(app_proofs, self.num_children);
-        tracing::info!("num_leaf_proofs={}", leaf_inputs.len());
         leaf_inputs
             .into_iter()
             .enumerate()
