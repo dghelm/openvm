@@ -87,4 +87,12 @@ let sdk = CpuSdk::builder()
     .build()?;
 ```
 
+In the example above, passing `None` to `DeferredVerify*Prover::new(..., None, def_idx)` means
+the child proof being verified is expected to be a **non-deferral** proof.
+
+If you are doing nested verification of a child proof that was itself produced through a
+deferral-enabled path, construct the prover in deferral-aware mode instead by passing
+`Some(expected_def_hook_commit)`. In that case, the resulting verifier circuit expects the child
+`VmStarkProof` to carry valid `deferral_merkle_proofs`.
+
 Each guest call using `DEF_IDX` corresponds to the deferral circuit inserted at `DEF_IDX`. If there is exactly one deferral function registered (as above), `DEF_IDX = 0`.
