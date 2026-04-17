@@ -6,6 +6,8 @@ mod air;
 mod bus;
 #[cfg(feature = "cuda")]
 mod cuda;
+#[cfg(test)]
+mod tests;
 mod trace;
 
 pub use air::*;

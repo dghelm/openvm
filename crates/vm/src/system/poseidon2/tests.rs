@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
+use openvm_circuit_primitives::Chip;
+use openvm_cpu_backend::CpuBackend;
 use openvm_poseidon2_air::Poseidon2Config;
 use openvm_stark_backend::{
     interaction::LookupBus,
     p3_field::{PrimeCharacteristicRing, PrimeField32},
+    p3_matrix::Matrix,
     prover::AirProvingContext,
     test_utils::dummy_airs::interaction::dummy_interaction_air::{
         DummyInteractionChip, DummyInteractionData,
@@ -19,8 +22,8 @@ use crate::{
         testing::{TestSC, VmChipTestBuilder, POSEIDON2_DIRECT_BUS},
     },
     system::poseidon2::{
-        new_poseidon2_periphery_air, Poseidon2PeripheryChip, PERIPHERY_POSEIDON2_CHUNK_SIZE,
-        PERIPHERY_POSEIDON2_WIDTH,
+        new_poseidon2_periphery_air, Poseidon2PeripheryBaseChip, Poseidon2PeripheryChip,
+        PERIPHERY_POSEIDON2_CHUNK_SIZE, PERIPHERY_POSEIDON2_WIDTH,
     },
 };
 
@@ -152,4 +155,17 @@ fn poseidon2_periphery_duplicate_hashes_test() {
     let dummy_air = Arc::new(dummy_interaction_chip.air) as AirRef<TestSC>;
     let mut tester = tester.build().load_periphery_ref((air, chip)).finalize();
     tester.air_ctxs.push((dummy_air, dummy_ctx));
+}
+
+#[test]
+fn poseidon2_periphery_empty_trace_is_omitted() {
+    let chip = Poseidon2PeripheryBaseChip::<BabyBear, 1>::new(Poseidon2Config::default());
+
+    let ctx = <Poseidon2PeripheryBaseChip<BabyBear, 1> as Chip<(), CpuBackend<TestSC>>>::generate_proving_ctx(&chip, ());
+
+    assert_eq!(
+        ctx.common_main.height(),
+        0,
+        "unused poseidon2 periphery chip should return an empty trace",
+    );
 }
