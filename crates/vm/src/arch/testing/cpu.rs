@@ -419,7 +419,9 @@ where
     {
         let ctx = chip.generate_proving_ctx(());
         tracing::debug!("Generated air proving context for {}", air.name());
-        self.air_ctxs.push((air, ctx));
+        if ctx.height() > 0 {
+            self.air_ctxs.push((air, ctx));
+        }
 
         self
     }

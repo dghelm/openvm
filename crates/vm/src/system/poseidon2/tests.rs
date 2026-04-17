@@ -169,3 +169,14 @@ fn poseidon2_periphery_empty_trace_is_omitted() {
         "unused poseidon2 periphery chip should return an empty trace",
     );
 }
+#[test]
+fn poseidon2_periphery_empty_trace_is_ignored_by_cpu_test_harness() {
+    let (air, chip) = create_test_chip();
+
+    VmChipTestBuilder::default()
+        .build()
+        .load_periphery_ref((air, chip))
+        .finalize()
+        .simple_test()
+        .expect("unused poseidon2 periphery chip should be filtered before proving");
+}
