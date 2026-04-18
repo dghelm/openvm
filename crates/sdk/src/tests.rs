@@ -331,6 +331,8 @@ fn test_prove_mixed_requires_stage_aligned_deferral_child() -> Result<()> {
     );
 
     let (mut vm_proof, mut metadata) = stark_prover.agg_prover.prove_vm(continuation_proof)?;
+    let shallow_vm_proof = vm_proof.clone();
+    let shallow_metadata = copy_metadata(&metadata);
     while verifier_base_pvs(&vm_proof.inner)
         .recursion_flag
         .as_canonical_u32()
@@ -391,7 +393,7 @@ fn test_prove_mixed_requires_stage_aligned_deferral_child() -> Result<()> {
         .memory;
     let final_merkle_tree = MerkleTree::from_memory(final_memory, &memory_dimensions, &hasher);
 
-    // ---- Step 7: Show that the pre-fix beta.2 prove_mixed path returns a proof but fails ----
+    // ---- Step 7: Show that prove_mixed without alignment (the beta.2 bug) fails ----
     let mut mixed_proof = legacy_prove_mixed_unaligned(
         &stark_prover.agg_prover,
         vm_proof.clone(),
@@ -413,7 +415,27 @@ fn test_prove_mixed_requires_stage_aligned_deferral_child() -> Result<()> {
     .expect_err("unaligned prove_mixed should return a proof whose host verification fails");
     assert_sum_claim_mismatch(mixed_err);
 
-    // ---- Step 8: Manually lift the deferral child until recursion_flag matches ----
+    // ---- Step 8: Show that the real prove_mixed path auto-aligns the deferral child ----
+    let mut auto_aligned_mixed_proof = stark_prover.agg_prover.prove_mixed(
+        vm_proof.clone(),
+        DeferralProof::Present(def_inner.clone()),
+        &mut copy_metadata(&metadata),
+    )?;
+    attach_deferral_merkle_proofs(
+        &mut auto_aligned_mixed_proof,
+        memory_dimensions,
+        &initial_merkle_tree,
+        &final_merkle_tree,
+    );
+
+    Sdk::verify_proof(
+        vs_sdk.agg_vk().as_ref().clone(),
+        stark_prover.generate_baseline(),
+        &auto_aligned_mixed_proof,
+    )
+    .expect("prove_mixed should auto-align the deferral child before mixing");
+
+    // ---- Step 9: Manually lift the deferral child until recursion_flag matches ----
     let mut aligned_def_inner = def_inner;
     while verifier_base_pvs(&aligned_def_inner)
         .recursion_flag
@@ -450,7 +472,7 @@ fn test_prove_mixed_requires_stage_aligned_deferral_child() -> Result<()> {
 
     let mut aligned_mixed_proof = stark_prover.agg_prover.prove_mixed(
         vm_proof,
-        DeferralProof::Present(aligned_def_inner),
+        DeferralProof::Present(aligned_def_inner.clone()),
         &mut copy_metadata(&metadata),
     )?;
     attach_deferral_merkle_proofs(
@@ -466,6 +488,26 @@ fn test_prove_mixed_requires_stage_aligned_deferral_child() -> Result<()> {
         &aligned_mixed_proof,
     )
     .expect("aligned prove_mixed output should host-verify");
+
+    // ---- Step 10: Show that prove_mixed also lifts the VM child when it is shallower ----
+    let mut reverse_mixed_proof = stark_prover.agg_prover.prove_mixed(
+        shallow_vm_proof,
+        DeferralProof::Present(aligned_def_inner.clone()),
+        &mut copy_metadata(&shallow_metadata),
+    )?;
+    attach_deferral_merkle_proofs(
+        &mut reverse_mixed_proof,
+        memory_dimensions,
+        &initial_merkle_tree,
+        &final_merkle_tree,
+    );
+
+    Sdk::verify_proof(
+        vs_sdk.agg_vk().as_ref().clone(),
+        stark_prover.generate_baseline(),
+        &reverse_mixed_proof,
+    )
+    .expect("prove_mixed should also align the VM child when it is shallower");
 
     Ok(())
 }

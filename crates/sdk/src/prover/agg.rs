@@ -280,18 +280,47 @@ impl AggProver {
             return Ok(vm_proof);
         };
 
-        let vm_base = verifier_base_pvs(&vm_proof.inner);
+        // Mixed internal-recursive proofs require both children to already encode the same
+        // verifier-base stage. Lift whichever child is shallower until their recursion flags,
+        // and therefore their recursive-self VK visibility, match before mixing.
+        let mut vm_base = verifier_base_pvs(&vm_proof.inner);
         let mut def_base = verifier_base_pvs(&def_inner);
-        while def_base.recursion_flag.as_canonical_u32() < vm_base.recursion_flag.as_canonical_u32()
+        while vm_base.recursion_flag.as_canonical_u32()
+            != def_base.recursion_flag.as_canonical_u32()
         {
-            def_inner = self.internal_recursive_prover.agg_prove::<E>(
-                &[def_inner],
-                ChildVkKind::RecursiveSelf,
-                ProofsType::Deferral,
-                None,
-            )?;
-            def_base = verifier_base_pvs(&def_inner);
+            if def_base.recursion_flag.as_canonical_u32()
+                < vm_base.recursion_flag.as_canonical_u32()
+            {
+                def_inner = info_span!(
+                    "def_alignment_lift",
+                    def_flag = def_base.recursion_flag.as_canonical_u32(),
+                    vm_flag = vm_base.recursion_flag.as_canonical_u32(),
+                )
+                .in_scope(|| {
+                    self.internal_recursive_prover.agg_prove::<E>(
+                        &[def_inner],
+                        ChildVkKind::RecursiveSelf,
+                        ProofsType::Deferral,
+                        None,
+                    )
+                })?;
+                def_base = verifier_base_pvs(&def_inner);
+            } else {
+                vm_proof = self.wrap_proof(vm_proof, metadata)?;
+                vm_base = verifier_base_pvs(&vm_proof.inner);
+            }
         }
+        assert_eq!(
+            vm_base.recursion_flag.as_canonical_u32(),
+            def_base.recursion_flag.as_canonical_u32(),
+            "prove_mixed: recursion_flag mismatch after alignment: vm={}, def={}",
+            vm_base.recursion_flag.as_canonical_u32(),
+            def_base.recursion_flag.as_canonical_u32(),
+        );
+        assert_eq!(
+            vm_base.internal_recursive_vk_commit, def_base.internal_recursive_vk_commit,
+            "prove_mixed: internal_recursive_vk_commit mismatch after alignment"
+        );
 
         vm_proof.inner = info_span!(
             "agg_layer",
