@@ -332,6 +332,7 @@ fn test_prove_mixed_requires_stage_aligned_deferral_child() -> Result<()> {
 
     let (mut vm_proof, mut metadata) = stark_prover.agg_prover.prove_vm(continuation_proof)?;
     let shallow_vm_proof = vm_proof.clone();
+    let shallow_vm_base = verifier_base_pvs(&shallow_vm_proof.inner);
     let shallow_metadata = copy_metadata(&metadata);
     while verifier_base_pvs(&vm_proof.inner)
         .recursion_flag
@@ -490,6 +491,13 @@ fn test_prove_mixed_requires_stage_aligned_deferral_child() -> Result<()> {
     .expect("aligned prove_mixed output should host-verify");
 
     // ---- Step 10: Show that prove_mixed also lifts the VM child when it is shallower ----
+    assert!(
+        shallow_vm_base.recursion_flag.as_canonical_u32()
+            < aligned_def_base.recursion_flag.as_canonical_u32(),
+        "reverse-case check requires the saved VM proof to still be shallower than the aligned deferral child: vm={}, def={}",
+        shallow_vm_base.recursion_flag.as_canonical_u32(),
+        aligned_def_base.recursion_flag.as_canonical_u32(),
+    );
     let mut reverse_mixed_proof = stark_prover.agg_prover.prove_mixed(
         shallow_vm_proof,
         DeferralProof::Present(aligned_def_inner.clone()),
