@@ -1,14 +1,19 @@
-use std::sync::Arc;
+use std::{borrow::Borrow, sync::Arc};
 
 use eyre::Result;
 use openvm_circuit::arch::ContinuationVmProof;
 use openvm_continuations::{circuit::inner::ProofsType, prover::ChildVkKind};
 use openvm_recursion_circuit::prelude::Digest;
 use openvm_stark_backend::{
-    keygen::types::MultiStarkVerifyingKey, p3_field::PrimeCharacteristicRing,
+    keygen::types::MultiStarkVerifyingKey,
+    p3_field::{PrimeCharacteristicRing, PrimeField32},
+    proof::Proof,
 };
 use openvm_stark_sdk::config::baby_bear_poseidon2::{poseidon2_compress_with_capacity, F};
-use openvm_verify_stark_host::{pvs::DeferralPvs, VmStarkProof};
+use openvm_verify_stark_host::{
+    pvs::{DeferralPvs, VerifierBasePvs, VERIFIER_PVS_AIR_ID},
+    VmStarkProof,
+};
 use tracing::info_span;
 
 use crate::{
@@ -271,9 +276,51 @@ impl AggProver {
         def_proof: DeferralProof,
         metadata: &mut InternalLayerMetadata,
     ) -> Result<VmStarkProof> {
-        let DeferralProof::Present(def_inner) = def_proof else {
+        let DeferralProof::Present(mut def_inner) = def_proof else {
             return Ok(vm_proof);
         };
+
+        // Mixed internal-recursive proofs require both children to already encode the same
+        // verifier-base stage. Lift whichever child is shallower until their recursion flags,
+        // and therefore their recursive-self VK visibility, match before mixing.
+        let mut vm_base = verifier_base_pvs(&vm_proof.inner);
+        let mut def_base = verifier_base_pvs(&def_inner);
+        while vm_base.recursion_flag.as_canonical_u32()
+            != def_base.recursion_flag.as_canonical_u32()
+        {
+            if def_base.recursion_flag.as_canonical_u32()
+                < vm_base.recursion_flag.as_canonical_u32()
+            {
+                def_inner = info_span!(
+                    "def_alignment_lift",
+                    def_flag = def_base.recursion_flag.as_canonical_u32(),
+                    vm_flag = vm_base.recursion_flag.as_canonical_u32(),
+                )
+                .in_scope(|| {
+                    self.internal_recursive_prover.agg_prove::<E>(
+                        &[def_inner],
+                        ChildVkKind::RecursiveSelf,
+                        ProofsType::Deferral,
+                        None,
+                    )
+                })?;
+                def_base = verifier_base_pvs(&def_inner);
+            } else {
+                vm_proof = self.wrap_proof(vm_proof, metadata)?;
+                vm_base = verifier_base_pvs(&vm_proof.inner);
+            }
+        }
+        assert_eq!(
+            vm_base.recursion_flag.as_canonical_u32(),
+            def_base.recursion_flag.as_canonical_u32(),
+            "prove_mixed: recursion_flag mismatch after alignment: vm={}, def={}",
+            vm_base.recursion_flag.as_canonical_u32(),
+            def_base.recursion_flag.as_canonical_u32(),
+        );
+        assert_eq!(
+            vm_base.internal_recursive_vk_commit, def_base.internal_recursive_vk_commit,
+            "prove_mixed: internal_recursive_vk_commit mismatch after alignment"
+        );
 
         vm_proof.inner = info_span!(
             "agg_layer",
@@ -319,6 +366,12 @@ impl AggProver {
         })?;
         Ok(proof)
     }
+}
+
+fn verifier_base_pvs(proof: &Proof<SC>) -> VerifierBasePvs<F> {
+    let slice = proof.public_values[VERIFIER_PVS_AIR_ID].as_slice();
+    let pvs: &VerifierBasePvs<F> = slice[..VerifierBasePvs::<u8>::width()].borrow();
+    *pvs
 }
 
 fn reduce_def_round<const N: usize>(
